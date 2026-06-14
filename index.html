@@ -11,156 +11,202 @@ body{
   background:linear-gradient(120deg,#4facfe,#00f2fe);
   text-align:center;
   margin:0;
-  padding:0;
 }
 
 .card{
   background:white;
-  width:380px;
-  margin:50px auto;
+  width:420px;
+  margin:30px auto;
   padding:20px;
   border-radius:15px;
   box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
 button{
-  padding:12px 20px;
-  margin:10px;
+  padding:10px;
+  margin:5px;
   border:none;
   border-radius:10px;
   background:#4facfe;
   color:white;
-  font-size:16px;
   cursor:pointer;
 }
 
-button:hover{
-  background:#007bff;
-}
-
-img{
-  width:100%;
-  border-radius:10px;
-}
-
-#exam{
+#reportBtn{
+  background:orange;
+  color:black;
   display:none;
 }
 
-#timer{
-  font-size:20px;
-  font-weight:bold;
-  margin-bottom:10px;
-}
+img{width:100%; border-radius:10px;}
 
-#result{
-  font-size:22px;
-  color:green;
-  margin-top:15px;
-}
+#exam{display:none;}
+#report{margin-top:10px;}
 </style>
 </head>
 
 <body>
 
-<!-- صفحه شروع -->
+<!-- START -->
 <div id="start" class="card">
-  <h2>آزمون 5 سوالی</h2>
-  <p>زمان آزمون: 7 دقیقه</p>
+  <h2>آزمون آنلاین</h2>
+  <input id="name" placeholder="نام دانش‌آموز">
+  <br><br>
   <button onclick="startExam()">شروع آزمون</button>
 </div>
 
-<!-- صفحه آزمون -->
+<!-- EXAM -->
 <div id="exam" class="card">
 
-<h2>آزمون آنلاین</h2>
-<div id="timer">07:00</div>
+<h2 id="title"></h2>
 
-<img id="img" src="q1.png">
+<img id="img">
 
-<div>
-<button onclick="answer(1)">1</button>
-<button onclick="answer(2)">2</button>
-<button onclick="answer(3)">3</button>
-<button onclick="answer(4)">4</button>
-</div>
+<div id="options"></div>
 
-<button onclick="next()">سوال بعد</button>
+<br>
 
-<div id="result"></div>
+<button onclick="prev()">⬅ قبلی</button>
+<button onclick="next()">➡ بعدی</button>
+
+<br>
+
+<button id="reportBtn" onclick="showReport()">بررسی آزمون</button>
+
+<div id="report"></div>
+
+<div id="chart"></div>
+
+<h3 id="result"></h3>
 
 </div>
 
 <script>
 
 let q = 0;
-let score = 0;
-let time = 420;
-let timer;
+let userName = "";
+let userAnswers = [];
 
 let questions = [
-  {img:"q1.png"},
-  {img:"q2.png"},
-  {img:"q3.png"},
-  {img:"q4.png"},
-  {img:"q5.png"}
+  {img:"q1.png", opt:5},
+  {img:"q2.png", opt:4},
+  {img:"q3.png", opt:4},
+  {img:"q4.png", opt:4},
+  {img:"q5.png", opt:4}
 ];
 
-let answers = [2,1,4,3,2];
+// جواب‌ها
+let answers = [5,4,2,1,3];
 
 // شروع آزمون
 function startExam(){
+  userName = document.getElementById("name").value || "ناشناس";
   document.getElementById("start").style.display="none";
   document.getElementById("exam").style.display="block";
-
   load();
-  startTimer();
 }
 
 // لود سوال
 function load(){
   document.getElementById("img").src = questions[q].img;
+  document.getElementById("title").innerText = "سوال " + (q+1);
+
+  let max = questions[q].opt;
+  let html = "";
+
+  for(let i=1;i<=max;i++){
+    html += `<button onclick="answer(${i})">${i}</button>`;
+  }
+
+  document.getElementById("options").innerHTML = html;
 }
 
-// جواب
-function answer(val){
-  if(val === answers[q]){
-    score++;
-  }
+// ثبت جواب
+function answer(v){
+  userAnswers[q] = v;
 }
 
 // سوال بعد
 function next(){
-  q++;
-  if(q >= questions.length){
-    finish();
+  if(q < questions.length-1){
+    q++;
+    load();
   }else{
+    finish();
+  }
+}
+
+// سوال قبل
+function prev(){
+  if(q > 0){
+    q--;
     load();
   }
 }
 
-// پایان
+// پایان آزمون
 function finish(){
-  clearInterval(timer);
-  document.getElementById("result").innerHTML =
-    "نمره شما: " + score + " از 5";
+  document.getElementById("reportBtn").style.display="inline-block";
+  document.getElementById("result").innerHTML = "آزمون تمام شد ✔";
 }
 
-// تایمر
-function startTimer(){
-  timer = setInterval(()=>{
-    let m = Math.floor(time/60);
-    let s = time%60;
+// بررسی آزمون
+function showReport(){
 
-    document.getElementById("timer").innerHTML =
-      (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+  let correct = 0;
+  let wrong = 0;
+  let blank = 0;
 
-    time--;
+  for(let i=0;i<questions.length;i++){
 
-    if(time < 0){
-      finish();
+    if(userAnswers[i] == undefined){
+      blank++;
     }
-  },1000);
+    else if(userAnswers[i] == answers[i]){
+      correct++;
+    }
+    else{
+      wrong++;
+    }
+  }
+
+  // قانون 2 غلط = 1 درست منفی
+  let net = correct - (wrong / 2);
+  if(net < 0) net = 0;
+
+  let percent = Math.round((net / questions.length) * 100);
+
+  document.getElementById("report").innerHTML = `
+    <h3>📊 کارنامه</h3>
+    <p>👤 نام: ${userName}</p>
+    <p>✅ درست: ${correct}</p>
+    <p>❌ غلط: ${wrong}</p>
+    <p>⚪ نزده: ${blank}</p>
+    <p>📊 درصد: ${percent}%</p>
+  `;
+
+  showChart(correct, wrong, blank);
+}
+
+// نمودار عملکرد
+function showChart(correct, wrong, blank){
+
+  const data = {
+    chartType: "pie",
+    meta: {
+      title: "عملکرد آزمون",
+      description: "درست، غلط و نزده"
+    },
+    nameKey: "type",
+    valueKey: "count",
+    data: [
+      { type: "درست", count: correct },
+      { type: "غلط", count: wrong },
+      { type: "نزده", count: blank }
+    ]
+  };
+
+  window.__renderChart?.(data);
 }
 
 </script>
