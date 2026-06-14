@@ -2,14 +2,14 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>آزمون آنلاین</title>
+<title>آزمون دانش‌آموز</title>
 
 <style>
 body{
   font-family:sans-serif;
   direction:rtl;
-  background:linear-gradient(120deg,#4facfe,#00f2fe);
   text-align:center;
+  background:linear-gradient(120deg,#4facfe,#00f2fe);
   margin:0;
 }
 
@@ -18,30 +18,27 @@ body{
   width:420px;
   margin:30px auto;
   padding:20px;
-  border-radius:15px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+  border-radius:12px;
 }
 
 button{
   padding:10px;
   margin:5px;
   border:none;
-  border-radius:10px;
+  border-radius:8px;
   background:#4facfe;
   color:white;
   cursor:pointer;
 }
 
+#exam{display:none;}
 #reportBtn{
   background:orange;
   color:black;
   display:none;
 }
 
-img{width:100%; border-radius:10px;}
-
-#exam{display:none;}
-#report{margin-top:10px;}
+img{width:100%;}
 </style>
 </head>
 
@@ -49,10 +46,10 @@ img{width:100%; border-radius:10px;}
 
 <!-- START -->
 <div id="start" class="card">
-  <h2>آزمون آنلاین</h2>
-  <input id="name" placeholder="نام دانش‌آموز">
+  <h2>ورود دانش‌آموز</h2>
+  <input id="name" placeholder="نام خود را وارد کنید">
   <br><br>
-  <button onclick="startExam()">شروع آزمون</button>
+  <button onclick="enter()">ورود به آزمون</button>
 </div>
 
 <!-- EXAM -->
@@ -75,8 +72,6 @@ img{width:100%; border-radius:10px;}
 
 <div id="report"></div>
 
-<div id="chart"></div>
-
 <h3 id="result"></h3>
 
 </div>
@@ -87,6 +82,10 @@ let q = 0;
 let userName = "";
 let userAnswers = [];
 
+// دانش‌آموزها (باید با admin یکی باشه)
+let status = JSON.parse(localStorage.getItem("status") || "{}");
+
+// سوال‌ها
 let questions = [
   {img:"q1.png", opt:5},
   {img:"q2.png", opt:4},
@@ -95,19 +94,29 @@ let questions = [
   {img:"q5.png", opt:4}
 ];
 
-// جواب‌ها
+// جواب درست‌ها
 let answers = [5,4,2,1,3];
 
-// شروع آزمون
-function startExam(){
+// ورود
+function enter(){
+
   userName = document.getElementById("name").value || "ناشناس";
+
+  // بررسی فعال بودن آزمون از پنل ادمین
+  if(!status[userName]){
+    document.body.innerHTML = "❌ آزمون برای شما فعال نیست";
+    return;
+  }
+
   document.getElementById("start").style.display="none";
   document.getElementById("exam").style.display="block";
+
   load();
 }
 
 // لود سوال
 function load(){
+
   document.getElementById("img").src = questions[q].img;
   document.getElementById("title").innerText = "سوال " + (q+1);
 
@@ -121,12 +130,12 @@ function load(){
   document.getElementById("options").innerHTML = html;
 }
 
-// ثبت جواب
+// جواب
 function answer(v){
   userAnswers[q] = v;
 }
 
-// سوال بعد
+// بعدی
 function next(){
   if(q < questions.length-1){
     q++;
@@ -136,7 +145,7 @@ function next(){
   }
 }
 
-// سوال قبل
+// قبلی
 function prev(){
   if(q > 0){
     q--;
@@ -144,13 +153,13 @@ function prev(){
   }
 }
 
-// پایان آزمون
+// پایان
 function finish(){
   document.getElementById("reportBtn").style.display="inline-block";
-  document.getElementById("result").innerHTML = "آزمون تمام شد ✔";
+  document.getElementById("result").innerHTML="آزمون تمام شد ✔";
 }
 
-// بررسی آزمون
+// کارنامه
 function showReport(){
 
   let correct = 0;
@@ -170,7 +179,7 @@ function showReport(){
     }
   }
 
-  // قانون 2 غلط = 1 درست منفی
+  // قانون: 2 غلط = 1 درست حذف
   let net = correct - (wrong / 2);
   if(net < 0) net = 0;
 
@@ -178,35 +187,12 @@ function showReport(){
 
   document.getElementById("report").innerHTML = `
     <h3>📊 کارنامه</h3>
-    <p>👤 نام: ${userName}</p>
+    <p>👤 ${userName}</p>
     <p>✅ درست: ${correct}</p>
     <p>❌ غلط: ${wrong}</p>
     <p>⚪ نزده: ${blank}</p>
     <p>📊 درصد: ${percent}%</p>
   `;
-
-  showChart(correct, wrong, blank);
-}
-
-// نمودار عملکرد
-function showChart(correct, wrong, blank){
-
-  const data = {
-    chartType: "pie",
-    meta: {
-      title: "عملکرد آزمون",
-      description: "درست، غلط و نزده"
-    },
-    nameKey: "type",
-    valueKey: "count",
-    data: [
-      { type: "درست", count: correct },
-      { type: "غلط", count: wrong },
-      { type: "نزده", count: blank }
-    ]
-  };
-
-  window.__renderChart?.(data);
 }
 
 </script>
