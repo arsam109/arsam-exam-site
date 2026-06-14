@@ -2,27 +2,11 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>پنل ادمین</title>
-
-<style>
-body{font-family:sans-serif;direction:rtl;text-align:center}
-.card{width:400px;margin:20px auto;background:#fff;padding:20px;border-radius:10px}
-button{padding:8px;margin:5px;background:#4facfe;color:#fff;border:none;border-radius:8px}
-</style>
+<title>Admin Panel</title>
 </head>
-
 <body>
 
-<div class="card">
-
 <h2>🎛 پنل ادمین</h2>
-
-<select id="examName">
-  <option value="exam1">آزمون 1</option>
-  <option value="exam2">آزمون 2</option>
-</select>
-
-<br><br>
 
 <select id="student">
   <option>آرسام جلینی</option>
@@ -34,52 +18,43 @@ button{padding:8px;margin:5px;background:#4facfe;color:#fff;border:none;border-r
 
 <br><br>
 
-<button onclick="addToExam()">اضافه به آزمون</button>
-<button onclick="saveExam()">ذخیره</button>
+<input id="exam" placeholder="نام آزمون (exam1)">
 
-<hr>
+<br><br>
 
-<button onclick="showRank()">📊 رتبه‌بندی (فقط ادمین)</button>
+<button onclick="activate()">فعال‌سازی آزمون</button>
 
-<div id="list"></div>
-<div id="rank"></div>
+<p id="msg"></p>
 
-</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 
 <script>
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "XXXX",
+  appId: "XXXX"
+};
 
-let exams = JSON.parse(localStorage.getItem("exams") || "{}");
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-function addToExam(){
+function activate(){
 
-  let exam = document.getElementById("examName").value;
   let student = document.getElementById("student").value;
+  let exam = document.getElementById("exam").value;
 
-  if(!exams[exam]) exams[exam] = {students:[],answers:[5,4,2,1,3]};
+  db.collection("exams").doc(student).set({
+    active: true,
+    exam: exam
+  });
 
-  exams[exam].students.push(student);
-
-  document.getElementById("list").innerHTML =
-    "✔ اضافه شد: " + student + " به " + exam;
+  document.getElementById("msg").innerText =
+    "✔ آزمون فعال شد برای " + student;
 }
-
-function saveExam(){
-  localStorage.setItem("exams", JSON.stringify(exams));
-  alert("ذخیره شد ✔");
-}
-
-// فقط ادمین رتبه‌بندی
-function showRank(){
-
-  let html = "<h3>📊 رتبه‌بندی مخفی</h3>";
-
-  for(let ex in exams){
-    html += `<p>${ex} → ${exams[ex].students.join(", ")}</p>`;
-  }
-
-  document.getElementById("rank").innerHTML = html;
-}
-
 </script>
 
 </body>
