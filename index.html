@@ -2,51 +2,132 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>Student Exam</title>
+<title>آزمون آنلاین</title>
+
+<style>
+body{font-family:sans-serif;direction:rtl;text-align:center}
+.card{width:400px;margin:auto;margin-top:30px;padding:20px;border:1px solid #ddd;border-radius:10px}
+button{margin:5px;padding:10px}
+</style>
 </head>
+
 <body>
 
-<h2>ورود دانش‌آموز</h2>
-
+<div class="card" id="start">
+<h2>ورود</h2>
 <input id="name" placeholder="نام">
-<button onclick="enter()">ورود</button>
+<br><br>
+<button onclick="start()">شروع آزمون</button>
+</div>
 
-<p id="msg"></p>
+<div class="card" id="exam" style="display:none">
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+<h2 id="qText"></h2>
+
+<div id="opts"></div>
+
+<br>
+
+<button onclick="prev()">قبلی</button>
+<button onclick="next()">بعدی</button>
+
+<p id="timer"></p>
+
+<button onclick="finish()">اتمام آزمون</button>
+
+</div>
+
+<div class="card" id="result" style="display:none"></div>
 
 <script>
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "XXXX",
-  appId: "XXXX"
-};
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+let q = 0;
+let name = "";
+let answers = [];
 
-function enter(){
+let correct = [1,2,3,4,1]; // جواب‌ها
 
-  let name = document.getElementById("name").value;
+let time = 300; // 5 دقیقه
 
-  db.collection("exams").doc(name).get().then(doc=>{
+let questions = [
+"سوال 1",
+"سوال 2",
+"سوال 3",
+"سوال 4",
+"سوال 5"
+];
 
-    if(!doc.exists || !doc.data().active){
-      document.getElementById("msg").innerText =
-        "❌ آزمون فعال نیست";
-      return;
-    }
+function start(){
+  name = document.getElementById("name").value;
 
-    document.body.innerHTML =
-      "<h2>📘 " + doc.data().exam + "</h2><p>آزمون شروع شد ✔</p>";
+  document.getElementById("start").style.display="none";
+  document.getElementById("exam").style.display="block";
 
-  });
-
+  show();
+  setInterval(timer,1000);
 }
+
+function show(){
+  document.getElementById("qText").innerText = questions[q];
+
+  let html = "";
+  for(let i=1;i<=4;i++){
+    html += `<button onclick="ans(${i})">گزینه ${i}</button>`;
+  }
+
+  document.getElementById("opts").innerHTML = html;
+}
+
+function ans(v){
+  answers[q] = v;
+}
+
+function next(){
+  if(q<4){q++; show();}
+}
+
+function prev(){
+  if(q>0){q--; show();}
+}
+
+function timer(){
+  time--;
+  document.getElementById("timer").innerText = "زمان: " + time;
+
+  if(time<=0){
+    finish();
+  }
+}
+
+function finish(){
+
+  let c=0,w=0,b=0;
+
+  for(let i=0;i<5;i++){
+    if(answers[i]==undefined) b++;
+    else if(answers[i]==correct[i]) c++;
+    else w++;
+  }
+
+  let score = c - (w/2);
+  if(score<0) score=0;
+
+  let percent = (score/5)*100;
+
+  document.getElementById("exam").style.display="none";
+  document.getElementById("result").style.display="block";
+
+  document.getElementById("result").innerHTML =
+  `
+  <h2>کارنامه</h2>
+  <p>نام: ${name}</p>
+  <p>درست: ${c}</p>
+  <p>غلط: ${w}</p>
+  <p>نزده: ${b}</p>
+  <p>درصد: ${percent}%</p>
+  `;
+}
+
 </script>
 
 </body>
