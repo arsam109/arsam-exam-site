@@ -2,210 +2,51 @@
 <html lang="fa">
 <head>
 <meta charset="UTF-8">
-<title>سیستم آزمون</title>
-
-<style>
-body{
-  font-family:sans-serif;
-  direction:rtl;
-  text-align:center;
-  background:linear-gradient(120deg,#4facfe,#00f2fe);
-  margin:0;
-}
-
-.card{
-  background:white;
-  width:420px;
-  margin:25px auto;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 10px 20px rgba(0,0,0,0.2);
-}
-
-button{
-  padding:10px;
-  margin:5px;
-  border:none;
-  border-radius:8px;
-  background:#4facfe;
-  color:white;
-  cursor:pointer;
-}
-
-#exam{display:none;}
-#reportBtn{
-  background:orange;
-  color:black;
-  display:none;
-}
-
-img{width:100%;border-radius:10px;}
-</style>
+<title>Student Exam</title>
 </head>
-
 <body>
 
-<!-- ورود -->
-<div id="start" class="card">
-  <h2>ورود دانش‌آموز</h2>
-  <input id="name" placeholder="نام خود را وارد کنید">
-  <br><br>
-  <button onclick="enter()">ورود</button>
-</div>
+<h2>ورود دانش‌آموز</h2>
 
-<!-- آزمون -->
-<div id="exam" class="card">
+<input id="name" placeholder="نام">
+<button onclick="enter()">ورود</button>
 
-<h2 id="examTitle"></h2>
+<p id="msg"></p>
 
-<img id="img">
-
-<div id="options"></div>
-
-<br>
-
-<button onclick="prev()">⬅ قبلی</button>
-<button onclick="next()">➡ بعدی</button>
-
-<br>
-
-<button id="reportBtn" onclick="showReport()">بررسی آزمون</button>
-
-<div id="report"></div>
-
-</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
 
 <script>
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "XXXX",
+  appId: "XXXX"
+};
 
-let q = 0;
-let userName = "";
-let userAnswers = [];
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-// گرفتن آزمون‌ها از ادمین
-let exams = JSON.parse(localStorage.getItem("exams") || "{}");
-
-// انتخاب آزمون کاربر
-let activeExam = null;
-
-// سوالات پیشفرض (فعلاً ساده)
-let questions = [
-  {img:"q1.png", opt:5},
-  {img:"q2.png", opt:4},
-  {img:"q3.png", opt:4},
-  {img:"q4.png", opt:4},
-  {img:"q5.png", opt:4}
-];
-
-// جواب‌ها (ادمین بعداً می‌تونه تغییر بده)
-let answers = [5,4,2,1,3];
-
-// ورود
 function enter(){
 
-  userName = document.getElementById("name").value || "ناشناس";
+  let name = document.getElementById("name").value;
 
-  // پیدا کردن آزمون کاربر
-  for(let ex in exams){
-    if(exams[ex].students.includes(userName)){
-      activeExam = ex;
-      break;
+  db.collection("exams").doc(name).get().then(doc=>{
+
+    if(!doc.exists || !doc.data().active){
+      document.getElementById("msg").innerText =
+        "❌ آزمون فعال نیست";
+      return;
     }
-  }
 
-  if(!activeExam){
-    document.body.innerHTML = "❌ هیچ آزمونی برای شما فعال نیست";
-    return;
-  }
+    document.body.innerHTML =
+      "<h2>📘 " + doc.data().exam + "</h2><p>آزمون شروع شد ✔</p>";
 
-  document.getElementById("start").style.display="none";
-  document.getElementById("exam").style.display="block";
+  });
 
-  document.getElementById("examTitle").innerText =
-    "📘 " + activeExam;
-
-  load();
 }
-
-// لود سوال
-function load(){
-
-  document.getElementById("img").src = questions[q].img;
-
-  let max = questions[q].opt;
-  let html = "";
-
-  for(let i=1;i<=max;i++){
-    html += `<button onclick="answer(${i})">${i}</button>`;
-  }
-
-  document.getElementById("options").innerHTML = html;
-}
-
-// جواب
-function answer(v){
-  userAnswers[q] = v;
-}
-
-// بعدی
-function next(){
-  if(q < questions.length-1){
-    q++;
-    load();
-  }else{
-    finish();
-  }
-}
-
-// قبلی
-function prev(){
-  if(q > 0){
-    q--;
-    load();
-  }
-}
-
-// پایان
-function finish(){
-  document.getElementById("reportBtn").style.display="inline-block";
-}
-
-// کارنامه
-function showReport(){
-
-  let correct = 0;
-  let wrong = 0;
-  let blank = 0;
-
-  for(let i=0;i<questions.length;i++){
-
-    if(userAnswers[i] == undefined){
-      blank++;
-    }
-    else if(userAnswers[i] == answers[i]){
-      correct++;
-    }
-    else{
-      wrong++;
-    }
-  }
-
-  // قانون: 2 غلط = 1 درست منفی
-  let net = correct - (wrong / 2);
-  if(net < 0) net = 0;
-
-  let percent = Math.round((net / questions.length) * 100);
-
-  document.getElementById("report").innerHTML = `
-    <h3>📊 کارنامه</h3>
-    <p>👤 نام: ${userName}</p>
-    <p>📘 آزمون: ${activeExam}</p>
-    <p>✅ درست: ${correct}</p>
-    <p>❌ غلط: ${wrong}</p>
-    <p>⚪ نزده: ${blank}</p>
-    <p>📊 درصد: ${percent}%</p>
-  `;
-}
-
 </script>
 
 </body>
