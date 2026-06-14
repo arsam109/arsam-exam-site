@@ -6,12 +6,12 @@
 
 <style>
 body{
-  font-family: sans-serif;
-  direction: rtl;
-  background: linear-gradient(120deg,#4facfe,#00f2fe);
+  font-family:sans-serif;
+  direction:rtl;
+  background:linear-gradient(120deg,#4facfe,#00f2fe);
+  text-align:center;
   margin:0;
   padding:0;
-  text-align:center;
 }
 
 .card{
@@ -23,45 +23,55 @@ body{
   box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
-img{
-  width:100%;
-  border-radius:10px;
-  margin-bottom:10px;
-}
-
 button{
-  width:45%;
-  padding:10px;
-  margin:5px;
+  padding:12px 20px;
+  margin:10px;
   border:none;
   border-radius:10px;
-  cursor:pointer;
   background:#4facfe;
   color:white;
   font-size:16px;
+  cursor:pointer;
 }
 
 button:hover{
   background:#007bff;
 }
 
+img{
+  width:100%;
+  border-radius:10px;
+}
+
+#exam{
+  display:none;
+}
+
 #timer{
   font-size:20px;
-  margin-bottom:10px;
   font-weight:bold;
+  margin-bottom:10px;
 }
 
 #result{
   font-size:22px;
-  margin-top:15px;
   color:green;
+  margin-top:15px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="card">
+<!-- صفحه شروع -->
+<div id="start" class="card">
+  <h2>آزمون 5 سوالی</h2>
+  <p>زمان آزمون: 7 دقیقه</p>
+  <button onclick="startExam()">شروع آزمون</button>
+</div>
+
+<!-- صفحه آزمون -->
+<div id="exam" class="card">
 
 <h2>آزمون آنلاین</h2>
 <div id="timer">07:00</div>
@@ -69,10 +79,10 @@ button:hover{
 <img id="img" src="q1.png">
 
 <div>
-<button onclick="answer(1)">گزینه 1</button>
-<button onclick="answer(2)">گزینه 2</button>
-<button onclick="answer(3)">گزینه 3</button>
-<button onclick="answer(4)">گزینه 4</button>
+<button onclick="answer(1)">1</button>
+<button onclick="answer(2)">2</button>
+<button onclick="answer(3)">3</button>
+<button onclick="answer(4)">4</button>
 </div>
 
 <button onclick="next()">سوال بعد</button>
@@ -85,6 +95,8 @@ button:hover{
 
 let q = 0;
 let score = 0;
+let time = 420;
+let timer;
 
 let questions = [
   {img:"q1.png"},
@@ -94,15 +106,23 @@ let questions = [
   {img:"q5.png"}
 ];
 
-// جواب‌های درست (خودت اگر خواستی عوض کن)
 let answers = [2,1,4,3,2];
+
+// شروع آزمون
+function startExam(){
+  document.getElementById("start").style.display="none";
+  document.getElementById("exam").style.display="block";
+
+  load();
+  startTimer();
+}
 
 // لود سوال
 function load(){
   document.getElementById("img").src = questions[q].img;
 }
 
-// جواب دادن
+// جواب
 function answer(val){
   if(val === answers[q]){
     score++;
@@ -121,30 +141,27 @@ function next(){
 
 // پایان
 function finish(){
+  clearInterval(timer);
   document.getElementById("result").innerHTML =
     "نمره شما: " + score + " از 5";
-  clearInterval(timer);
 }
 
-// تایمر 7 دقیقه
-let time = 420;
+// تایمر
+function startTimer(){
+  timer = setInterval(()=>{
+    let m = Math.floor(time/60);
+    let s = time%60;
 
-let timer = setInterval(()=>{
-  let m = Math.floor(time/60);
-  let s = time%60;
+    document.getElementById("timer").innerHTML =
+      (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
 
-  document.getElementById("timer").innerHTML =
-    (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+    time--;
 
-  time--;
-
-  if(time < 0){
-    finish();
-  }
-
-},1000);
-
-load();
+    if(time < 0){
+      finish();
+    }
+  },1000);
+}
 
 </script>
 
