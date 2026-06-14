@@ -1,1 +1,102 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>پنل ادمین</title>
 
+<style>
+body{
+  font-family:sans-serif;
+  direction:rtl;
+  text-align:center;
+  background:#f2f2f2;
+}
+
+.card{
+  background:white;
+  width:400px;
+  margin:20px auto;
+  padding:20px;
+  border-radius:12px;
+}
+
+button{
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+.active{
+  background:green;
+  color:white;
+}
+
+.inactive{
+  background:red;
+  color:white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>🎛 فعال‌سازی آزمون</h2>
+
+<div id="list"></div>
+
+</div>
+
+<script>
+
+let students = [
+  "آرسام جلینی",
+  "مریم حبیبی",
+  "HTTPSCHEAHMEHLDN",
+  "موشی",
+  "اروین"
+];
+
+// وضعیت‌ها
+let status = JSON.parse(localStorage.getItem("status") || "{}");
+
+function render(){
+
+  let html = "";
+
+  students.forEach(name=>{
+
+    let isActive = status[name] || false;
+
+    html += `
+      <p>
+        ${name}
+        <button class="${isActive ? 'active':'inactive'}"
+        onclick="toggle('${name}')">
+        ${isActive ? 'آزمون فعال' : 'غیرفعال'}
+        </button>
+      </p>
+    `;
+  });
+
+  document.getElementById("list").innerHTML = html;
+}
+
+function toggle(name){
+
+  status[name] = !status[name];
+
+  localStorage.setItem("status", JSON.stringify(status));
+
+  render();
+}
+
+render();
+
+</script>
+
+</body>
+</html>
