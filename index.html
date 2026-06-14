@@ -1,72 +1,151 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <title>آزمون ساده</title>
-  <style>
-    body {
-      font-family: Arial;
-      text-align: center;
-      background: #f5f5f5;
-      direction: rtl;
-    }
-    .box {
-      background: white;
-      padding: 20px;
-      margin: 20px auto;
-      width: 300px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px #ccc;
-    }
-    button {
-      margin: 5px;
-      padding: 10px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>آزمون آنلاین</title>
+
+<style>
+body{
+  font-family: sans-serif;
+  direction: rtl;
+  background: linear-gradient(120deg,#4facfe,#00f2fe);
+  margin:0;
+  padding:0;
+  text-align:center;
+}
+
+.card{
+  background:white;
+  width:380px;
+  margin:50px auto;
+  padding:20px;
+  border-radius:15px;
+  box-shadow:0 10px 25px rgba(0,0,0,0.2);
+}
+
+img{
+  width:100%;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+button{
+  width:45%;
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:#4facfe;
+  color:white;
+  font-size:16px;
+}
+
+button:hover{
+  background:#007bff;
+}
+
+#timer{
+  font-size:20px;
+  margin-bottom:10px;
+  font-weight:bold;
+}
+
+#result{
+  font-size:22px;
+  margin-top:15px;
+  color:green;
+}
+</style>
 </head>
 
 <body>
 
-<h2>آزمون آنلاین ساده</h2>
+<div class="card">
 
-<div class="box">
+<h2>آزمون آنلاین</h2>
+<div id="timer">07:00</div>
 
-  <p>1) 5 + 3 = ؟</p>
-  <button onclick="answer(1,6)">6</button>
-  <button onclick="answer(1,8)">8</button>
+<img id="img" src="q1.png">
 
-  <hr>
+<div>
+<button onclick="answer(1)">گزینه 1</button>
+<button onclick="answer(2)">گزینه 2</button>
+<button onclick="answer(3)">گزینه 3</button>
+<button onclick="answer(4)">گزینه 4</button>
+</div>
 
-  <p>2) 4 × 2 = ؟</p>
-  <button onclick="answer(2,6)">6</button>
-  <button onclick="answer(2,8)">8</button>
+<button onclick="next()">سوال بعد</button>
 
-  <br><br>
-
-  <button onclick="showResult()">نمایش نتیجه</button>
-
-  <h3 id="result"></h3>
+<div id="result"></div>
 
 </div>
 
 <script>
+
+let q = 0;
 let score = 0;
-let done = {};
 
-function answer(q, val) {
-  if (done[q]) return;
+let questions = [
+  {img:"q1.png"},
+  {img:"q2.png"},
+  {img:"q3.png"},
+  {img:"q4.png"},
+  {img:"q5.png"}
+];
 
-  if (q === 1 && val === 8) score++;
-  if (q === 2 && val === 8) score++;
+// جواب‌های درست (خودت اگر خواستی عوض کن)
+let answers = [2,1,4,3,2];
 
-  done[q] = true;
+// لود سوال
+function load(){
+  document.getElementById("img").src = questions[q].img;
 }
 
-function showResult() {
+// جواب دادن
+function answer(val){
+  if(val === answers[q]){
+    score++;
+  }
+}
+
+// سوال بعد
+function next(){
+  q++;
+  if(q >= questions.length){
+    finish();
+  }else{
+    load();
+  }
+}
+
+// پایان
+function finish(){
   document.getElementById("result").innerHTML =
-    "نمره شما: " + score + " از 2";
+    "نمره شما: " + score + " از 5";
+  clearInterval(timer);
 }
+
+// تایمر 7 دقیقه
+let time = 420;
+
+let timer = setInterval(()=>{
+  let m = Math.floor(time/60);
+  let s = time%60;
+
+  document.getElementById("timer").innerHTML =
+    (m<10?"0":"")+m+":"+(s<10?"0":"")+s;
+
+  time--;
+
+  if(time < 0){
+    finish();
+  }
+
+},1000);
+
+load();
+
 </script>
 
 </body>
